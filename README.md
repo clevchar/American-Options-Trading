@@ -18,7 +18,7 @@ Simulates American put option exercise using Longstaff-Schwartz and visualizes o
 
 **Example Output:**
 
-![LSMC Heatmap](images/Optimal Stopping Heatmap.png)
+![LSMC Heatmap](images/Optimal%20Stopping%20Heatmap.png)
 
 ---
 
@@ -28,7 +28,7 @@ Fits a polynomial surface to synthetic implied volatility data across log-moneyn
 
 **Example Output:**
 
-![IV Surface](images/IV Surface.png)
+![IV Surface](images/IV%20Surface.png)
 
 ---
 
@@ -38,8 +38,7 @@ Applies a Bayesian update to the fitted IV surface, blending with market-observe
 
 **Example Output:**
 
-![Bayes IV Surface](images/Bayes IV Surface.png)
-
+![Bayes IV Surface](images/Bayes%20IV%20Surface.png)
 
 ## Features
 
@@ -53,3 +52,4 @@ Applies a Bayesian update to the fitted IV surface, blending with market-observe
 
 ```bash
 pip install numpy pandas matplotlib scikit-learn scipy
+
