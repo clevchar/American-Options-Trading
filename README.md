@@ -5,7 +5,7 @@ This repository implements a unified research framework for pricing and trading 
 
 ---
 
-## 🧠 Core Concepts
+## Concepts
 
 - **LSMC Optimal Stopping**: Uses Monte Carlo simulation to identify early exercise regions for American puts, visualized in log-moneyness and time to maturity space.
 - **Implied Volatility Surface**: Builds a 3D implied volatility surface from Black-Scholes-inverted market prices, fit in log-moneyness space.
@@ -22,7 +22,7 @@ Simulates American put options using the Longstaff-Schwartz method and visualize
 #### Example Output:
 
 <p align="center">
-  <img src="assets/lsmc_heatmap.png" alt="LSMC Heatmap" width="500"/>
+  <img src="images/Optimal_Stopping_Heatmap.png" alt="LSMC Heatmap" width="500"/>
 </p>
 
 ---
@@ -34,7 +34,7 @@ Builds a 3D implied volatility surface using polynomial regression over log-mone
 #### Example Output:
 
 <p align="center">
-  <img src="assets/iv_surface_polyfit.png" alt="IV Surface" width="500"/>
+  <img src="images/IV_Surface.png" alt="IV Surface" width="500"/>
 </p>
 
 ---
@@ -46,7 +46,7 @@ Applies a Bayesian update to the previously fitted IV surface by blending it wit
 #### Example Output:
 
 <p align="center">
-  <img src="assets/iv_surface_bayes_adjusted.png" alt="Bayesian Adjusted IV Surface" width="500"/>
+  <img src="images/IV_Surface_Bayes.png" alt="Bayesian Adjusted IV Surface" width="500"/>
 </p>
 
 ---
