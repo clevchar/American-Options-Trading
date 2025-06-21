@@ -1,55 +1,41 @@
 # American-Options-Trading
-# American-Options-Trading
 
 This repository implements a unified research framework for pricing and trading American-style options. It combines Longstaff-Schwartz optimal stopping theory with a real-time implied volatility surface model grounded in market data and updated using Bayesian techniques.
 
----
+## Overview
 
-## Concepts
+This project includes:
 
-- **LSMC Optimal Stopping**: Uses Monte Carlo simulation to identify early exercise regions for American puts, visualized in log-moneyness and time to maturity space.
-- **Implied Volatility Surface**: Builds a 3D implied volatility surface from Black-Scholes-inverted market prices, fit in log-moneyness space.
-- **Bayesian Surface Update**: Blends real market observations with theoretical fits to maintain a realistic and adaptive volatility surface, preserving structure and incorporating noise.
-
----
+- A Longstaff-Schwartz Monte Carlo (LSMC) simulation to estimate early exercise policies for American put options.
+- Construction of a 3D implied volatility surface in log-moneyness and time to maturity space.
+- A Bayesian updating mechanism to blend market-observed IVs with a fitted surface, preserving structure while reflecting real-time noise.
 
 ## File Descriptions
 
 ### `LSMC Optimal Stopping Log-Moneyness Heat Map.ipynb`
+Simulates early exercise decisions for American puts and visualizes the frequency of optimal stopping as a function of log-moneyness and time to maturity.
 
-Simulates American put options using the Longstaff-Schwartz method and visualizes the frequency of optimal exercise across a grid of time to maturity and log-moneyness.
+**Example Output:**
 
-#### Example Output:
-
-<p align="center">
-  <img src="images/Optimal_Stopping_Heatmap.png" alt="LSMC Heatmap" width="500"/>
-</p>
+![LSMC Heatmap](images/Optimal_Stopping_Heatmap.png)
 
 ---
 
 ### `IV Surface on Log-Moneyness.ipynb`
+Fits a polynomial surface to synthetic implied volatility data across log-moneyness and maturity. Captures both smile and term structure effects.
 
-Builds a 3D implied volatility surface using polynomial regression over log-moneyness and time. The surface captures volatility smile and term structure features and can be evaluated across a grid.
+**Example Output:**
 
-#### Example Output:
-
-<p align="center">
-  <img src="images/IV_Surface.png" alt="IV Surface" width="500"/>
-</p>
+![IV Surface](images/IV_Surface.png)
 
 ---
 
 ### `IV Surface Log-Moneyness Bayes.ipynb`
+Applies a Bayesian update to the fitted surface by blending it with noisy market-observed implied volatilities. The result is an adaptive surface that retains structural form while responding to microstructure and data.
 
-Applies a Bayesian update to the previously fitted IV surface by blending it with noisy or observed market data. This creates a surface that reflects real-time conditions while retaining the theoretical structure.
+**Example Output:**
 
-#### Example Output:
-
-<p align="center">
-  <img src="images/IV_Surface_Bayes.png" alt="Bayesian Adjusted IV Surface" width="500"/>
-</p>
-
----
+![Bayesian IV Surface](images/IV_Surface_Bayes.png)
 
 ## Features
 
@@ -57,11 +43,9 @@ Applies a Bayesian update to the previously fitted IV surface by blending it wit
 - Visualized early exercise heatmaps for interpretability
 - Volatility surface modeling in log-moneyness
 - Bayesian updates for adaptive, noise-aware pricing
-- Fully modular and extendable for real market data or trading bots
+- Modular and extendable for real market data or strategy backtests
 
----
-
-## To test
+## Dependencies
 
 ```bash
 pip install numpy pandas matplotlib scikit-learn scipy
