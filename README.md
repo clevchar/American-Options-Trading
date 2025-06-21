@@ -12,30 +12,34 @@ This project includes:
 
 ## File Descriptions
 
-### `LSMC Optimal Stopping Log-Moneyness Heat Map.ipynb`
-Simulates early exercise decisions for American puts and visualizes the frequency of optimal stopping as a function of log-moneyness and time to maturity.
+### LSMC Optimal Stopping Heat Map
+
+Simulates American put option exercise using Longstaff-Schwartz and visualizes optimal stopping frequency across log-moneyness and maturity.
 
 **Example Output:**
 
-![LSMC Heatmap](images/Optimal_Stopping_Heatmap.png)
+![LSMC Heatmap](images/Optimal Stopping Heatmap.png)
 
 ---
 
-### `IV Surface on Log-Moneyness.ipynb`
-Fits a polynomial surface to synthetic implied volatility data across log-moneyness and maturity. Captures both smile and term structure effects.
+### IV Surface on Log-Moneyness
+
+Fits a polynomial surface to synthetic implied volatility data across log-moneyness and maturity. Captures smile and term structure.
 
 **Example Output:**
 
-![IV Surface](images/IV_Surface.png)
+![IV Surface](images/IV Surface.png)
 
 ---
 
-### `IV Surface Log-Moneyness Bayes.ipynb`
-Applies a Bayesian update to the fitted surface by blending it with noisy market-observed implied volatilities. The result is an adaptive surface that retains structural form while responding to microstructure and data.
+### Bayes IV Surface
+
+Applies a Bayesian update to the fitted IV surface, blending with market-observed data while preserving shape.
 
 **Example Output:**
 
-![Bayesian IV Surface](images/IV_Surface_Bayes.png)
+![Bayes IV Surface](images/Bayes IV Surface.png)
+
 
 ## Features
 
