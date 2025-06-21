@@ -1,0 +1,23 @@
+# Simulate a noisy market-observed IV surface
+np.random.seed(42)
+iv_obs_grid = iv_pred + np.random.normal(0, 0.01, size=iv_pred.shape)  # add small noise to mimic market mispricing
+
+# Bayesian update function
+def bayes_adjust_surface(iv_model_grid, iv_obs_grid, var_model=0.0004, var_obs=0.0009):
+    w_obs = var_model / (var_model + var_obs)
+    w_model = var_obs / (var_model + var_obs)
+    return w_obs * iv_obs_grid + w_model * iv_model_grid
+
+# Apply update
+iv_bayes = bayes_adjust_surface(iv_pred, iv_obs_grid)
+
+# Plot the Bayesian-adjusted IV surface
+fig = plt.figure(figsize=(12, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(K_mesh, T_mesh, iv_bayes, cmap=cm.plasma)
+ax.set_xlabel("log(K/S)")
+ax.set_ylabel("T (maturity)")
+ax.set_zlabel("Bayesian Adjusted IV")
+plt.title("Bayesian-Adjusted Implied Volatility Surface")
+plt.tight_layout()
+plt.show()
