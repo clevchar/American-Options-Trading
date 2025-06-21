@@ -59,10 +59,26 @@ iv_pred = model.predict(X_plot_poly).reshape(K_mesh.shape)
 
 fig = plt.figure(figsize=(12, 6))
 ax = fig.add_subplot(111, projection='3d')
+
+# Plot surface
 ax.plot_surface(K_mesh, T_mesh, iv_pred, cmap=cm.viridis)
-ax.set_xlabel("log(K/S)")
-ax.set_ylabel("T (maturity)")
-ax.set_zlabel("Implied Volatility")
-plt.title("Synthetic IV Surface in Log-Moneyness Space")
-plt.tight_layout()
+
+# Axis labels with padding
+ax.set_xlabel("log(K/S)", labelpad=3)
+ax.set_ylabel("T (maturity)", labelpad=3)
+ax.set_zlabel("Implied Volatility", labelpad=3)  # Push z-label away from ticks
+
+# Z-label rotation and tick spacing
+ax.zaxis.label.set_rotation(90)
+ax.zaxis.label.set_fontsize(12)
+ax.tick_params(axis='z', pad=6)
+
+# Adjust layout so nothing is clipped
+fig.subplots_adjust(left=0.1, right=0.95, bottom=0.1, top=0.9)
+
+# Title
+plt.title("Synthetic IV Surface in Log-Moneyness Space", fontsize=14)
 plt.show()
+
+
+
