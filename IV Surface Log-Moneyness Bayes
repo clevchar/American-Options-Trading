@@ -11,13 +11,22 @@ def bayes_adjust_surface(iv_model_grid, iv_obs_grid, var_model=0.0004, var_obs=0
 # Apply update
 iv_bayes = bayes_adjust_surface(iv_pred, iv_obs_grid)
 
-# Plot the Bayesian-adjusted IV surface
-fig = plt.figure(figsize=(12, 6))
+fig = plt.figure(figsize=(14, 6))
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(K_mesh, T_mesh, iv_bayes, cmap=cm.plasma)
-ax.set_xlabel("log(K/S)")
-ax.set_ylabel("T (maturity)")
-ax.set_zlabel("Bayesian Adjusted IV")
-plt.title("Bayesian-Adjusted Implied Volatility Surface")
-plt.tight_layout()
+surf = ax.plot_surface(K_mesh, T_mesh, iv_bayes, cmap=cm.plasma)
+
+# Proper label formatting
+ax.set_xlabel("log(K/S)", labelpad=12)
+ax.set_ylabel("T (maturity)", labelpad=12)
+ax.set_zlabel("Bayesian Adjusted IV", labelpad=3)  # Increase spacing
+
+# Rotate z-label vertically, force rendering cleanly
+ax.zaxis.label.set_rotation(90)
+ax.zaxis.label.set_fontsize(12)
+ax.tick_params(axis='z', pad=5)
+
+# Increase margins to prevent clipping
+fig.subplots_adjust(left=0.1, right=0.95, bottom=0.1, top=0.9)
+
+plt.title("Bayesian-Adjusted Implied Volatility Surface", fontsize=14)
 plt.show()
