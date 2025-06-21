@@ -1,0 +1,89 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Step 1: Simulate asset price paths
+def simulate_paths(S0, r, sigma, T, steps, paths):
+    dt = T / steps
+    S = np.zeros((paths, steps + 1))
+    S[:, 0] = S0
+    for t in range(1, steps + 1):
+        z = np.random.normal(size=paths)
+        S[:, t] = S[:, t - 1] * np.exp((r - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * z)
+    return S
+
+# Step 2: Run LSMC for American Put Option
+def lsmc_american_put(S, K, r, T, steps):
+    dt = T / steps
+    cashflows = np.maximum(K - S[:, -1], 0)
+    exercise_flags = np.zeros_like(S)
+
+    for t in reversed(range(1, steps)):
+        itm = np.where(K - S[:, t] > 0)[0]  # in-the-money paths
+        X = S[itm, t]
+        Y = cashflows[itm] * np.exp(-r * dt)
+
+        # Laguerre polynomial basis (3 terms)
+        X_scaled = X / K
+        A = np.column_stack([
+            np.ones_like(X_scaled),
+            1 - X_scaled,
+            (1 - 2 * X_scaled + X_scaled ** 2)
+        ])
+        coeffs = np.linalg.lstsq(A, Y, rcond=None)[0]
+        continuation = coeffs @ A.T
+
+        immediate = K - X
+        exercise = immediate > continuation
+
+        # Update cashflows and flags
+        cashflows[itm[exercise]] = immediate[exercise]
+        cashflows[itm[~exercise]] *= np.exp(-r * dt)
+        exercise_flags[itm[exercise], t] = 1
+
+    return exercise_flags
+
+# Step 3: Plot heatmap in log-moneyness space
+def plot_log_moneyness_heatmap(S, exercise_flags, K, T, steps):
+    times = np.linspace(0, T, steps + 1)
+    log_moneyness = np.log(S / K)
+
+    # Flatten arrays
+    lm_flat = log_moneyness.flatten()
+    t_flat = np.tile(times, S.shape[0])
+    ex_flat = exercise_flags.flatten()
+
+    # Only where exercise occurred
+    lm_ex = lm_flat[ex_flat == 1]
+    t_ex = t_flat[ex_flat == 1]
+
+    # Create 2D histogram
+    heatmap, xedges, yedges = np.histogram2d(
+        lm_ex, t_ex, bins=[100, 100], range=[[-1, 1], [0, T]]
+    )
+
+    plt.figure(figsize=(10, 6))
+    plt.title(f"Optimal Stopping Heatmap (log(S/K)) — Strike={K}")
+    plt.xlabel("log(S / K)")
+    plt.ylabel("Time to Maturity")
+    plt.imshow(
+        heatmap.T, origin="lower", aspect="auto",
+        extent=[-1, 1, 0, T], cmap="hot"
+    )
+    plt.colorbar(label="Exercise Frequency")
+    plt.grid(True)
+    plt.show()
+# Parameters
+S0 = 100
+K = 100
+r = 0.05
+sigma = 0.2
+T = 1.0
+steps = 50
+paths = 10000
+
+# Run simulation + LSMC
+S_paths = simulate_paths(S0, r, sigma, T, steps, paths)
+exercise_flags = lsmc_american_put(S_paths, K, r, T, steps)
+
+# Plot stopping region heatmap
+plot_log_moneyness_heatmap(S_paths, exercise_flags, K, T, steps)
