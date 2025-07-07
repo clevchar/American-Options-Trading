@@ -20,8 +20,7 @@ Simulates American put option exercise using Longstaff-Schwartz and visualizes o
 
 **Example Output:**
 
-![LSMC Optimal Stopping Policy Inferred vs NN Residuals](![LSMC-Based Optimal Stopping Policy to NN](images/LSMC-Based%20Optimal%20Stopping%20Policy%20to%20NN.png)
-
+![LSMC Heatmap](images/Optimal%20Stopping%20Heatmap.png)
 
 ---
 
@@ -31,7 +30,7 @@ Simulates American put option exercise using Longstaff-Schwartz and visualizes o
 
 **Example Output:**
 
-![LSMC Heatmap](images/Optimal%20Stopping%20Heatmap.png)
+![LSMC Optimal Stopping Policy Inferred vs NN Residuals](![LSMC-Based Optimal Stopping Policy to NN](images/LSMC-Based%20Optimal%20Stopping%20Policy%20to%20NN.png)
 
 ---
 
