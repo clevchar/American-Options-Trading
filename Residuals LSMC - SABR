@@ -1,0 +1,102 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
+from scipy.ndimage import gaussian_filter
+from matplotlib import cm
+
+# SABR IV approximation (Hagan)
+def sabr_iv(F, K, T, alpha, beta, rho, nu):
+    if np.isclose(F, K):
+        term1 = alpha / F**(1 - beta)
+        term2 = 1 + ((1 - beta)**2 / 24) * (alpha**2 / F**(2 - 2 * beta)) + \
+                   (rho * beta * nu * alpha) / (4 * F**(1 - beta)) + \
+                   ((2 - 3 * rho**2) * nu**2 / 24)
+        return term1 * (1 + term2 * T)
+    else:
+        logFK = np.log(F / K)
+        FK_beta = (F * K)**((1 - beta) / 2)
+        z = (nu / alpha) * FK_beta * logFK
+        x_z = np.log((np.sqrt(1 - 2 * rho * z + z**2) + z - rho) / (1 - rho))
+        term1 = alpha / (FK_beta + 1e-12) * (z / x_z)
+        term2 = 1 + ((1 - beta)**2 / 24) * logFK**2 + ((1 - beta)**4 / 1920) * logFK**4
+        return term1 * term2
+
+# SABR calibration using least squares
+def fit_sabr_iv_surface(K, T, IV_obs, F, beta_fixed=0.5):
+    def objective(params):
+        alpha, rho, nu = params
+        preds = np.array([sabr_iv(F, k, t, alpha, beta_fixed, rho, nu) for k, t in zip(K, T)])
+        return np.mean((preds - IV_obs)**2)
+
+    x0 = [np.mean(IV_obs), 0.0, 0.5]
+    bounds = [(0.01, 2.0), (-0.999, 0.999), (0.01, 5.0)]
+    result = minimize(objective, x0, bounds=bounds, method='L-BFGS-B')
+
+    if not result.success:
+        raise RuntimeError("SABR fit failed")
+    
+    alpha, rho, nu = result.x
+    return {"alpha": alpha, "beta": beta_fixed, "rho": rho, "nu": nu}
+
+# Evaluate SABR IV surface
+def sabr_iv_surface(K_grid, T_grid, F, alpha, beta, rho, nu):
+    sabr_vec = np.vectorize(sabr_iv)
+    return sabr_vec(F, K_grid, T_grid, alpha, beta, rho, nu)
+
+# Plot LSMC vs SABR vs Residuals
+def compare_iv_surfaces_with_residual(K_grid, T_grid, IV_obs_grid, F):
+    K_flat = K_grid.flatten()
+    T_flat = T_grid.flatten()
+    IV_flat = IV_obs_grid.flatten()
+
+    sabr_params = fit_sabr_iv_surface(K_flat, T_flat, IV_flat, F)
+    IV_sabr_grid = sabr_iv_surface(K_grid, T_grid, F,
+                                   sabr_params["alpha"],
+                                   sabr_params["beta"],
+                                   sabr_params["rho"],
+                                   sabr_params["nu"])
+    log_moneyness = np.log(K_grid / F)
+    residuals = IV_obs_grid - IV_sabr_grid
+
+    fig = plt.figure(figsize=(18, 6))
+    fig.suptitle("Residual: LSMC - SABR", fontsize=16)
+
+    ax1 = fig.add_subplot(1, 3, 1, projection="3d")
+    ax1.plot_surface(log_moneyness, T_grid, IV_obs_grid, cmap=cm.viridis)
+    ax1.set_title("LSMC-Inferred IV Surface")
+    ax1.set_xlabel("log(K/F)")
+    ax1.set_ylabel("T")
+    ax1.set_zlabel("IV")
+
+    ax2 = fig.add_subplot(1, 3, 2, projection="3d")
+    ax2.plot_surface(log_moneyness, T_grid, IV_sabr_grid, cmap=cm.plasma)
+    ax2.set_title("SABR-Fitted IV Surface")
+    ax2.set_xlabel("log(K/F)")
+    ax2.set_ylabel("T")
+    ax2.set_zlabel("IV")
+
+    ax3 = fig.add_subplot(1, 3, 3, projection="3d")
+    ax3.plot_surface(log_moneyness, T_grid, residuals, cmap=cm.coolwarm)
+    ax3.set_title("Residual: LSMC - SABR")
+    ax3.set_xlabel("log(K/F)")
+    ax3.set_ylabel("T")
+    ax3.set_zlabel("Residual")
+
+    plt.tight_layout()
+    plt.show()
+
+    return sabr_params, IV_sabr_grid, residuals
+
+# === Run synthetic test ===
+F = 100
+K_vals = np.linspace(60, 140, 40)
+T_vals = np.linspace(0.05, 1.0, 40)
+K_grid, T_grid = np.meshgrid(K_vals, T_vals)
+
+# Simulate LSMC-style IVs
+iv_obs = 0.2 + 0.1 * (np.log(K_grid / F))**2 + 0.05 * T_grid
+iv_obs += np.random.normal(0, 0.005, size=iv_obs.shape)
+iv_obs_smoothed = gaussian_filter(iv_obs, sigma=1.0)
+
+# Plot + compare
+compare_iv_surfaces_with_residual(K_grid, T_grid, iv_obs_smoothed, F)
