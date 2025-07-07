@@ -49,7 +49,8 @@ Applies a Bayesian update to the fitted IV surface, blending with market-observe
 Although SABR is a extapolable physics equation using parameterization, it loses true structure. Observe the nueral net can reconstruct IV surface far more accurately, although developments must be made towards arbitrage free surface requirements for this to truly function.
 **Example Output:**
 
-![Bayes IV Surface](images/Bayes%20IV%20Surface.png)
+![Residuals LSMC - SABR](images/Residuals%20LSMC%20-%20SABR.png)
+![Neural Net Fit to LSMC IV Surface](images/Neural%20Net%20Fit%20to%20LSMC%20IV%20Surface.png)
 
 ## Features
 
