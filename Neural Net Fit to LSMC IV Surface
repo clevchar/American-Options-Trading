@@ -1,0 +1,91 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
+from matplotlib import cm
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import TensorDataset, DataLoader
+
+# === Generate synthetic LSMC IV surface ===
+F = 100
+K_vals = np.linspace(60, 140, 40)
+T_vals = np.linspace(0.05, 1.0, 40)
+K_grid, T_grid = np.meshgrid(K_vals, T_vals)
+log_moneyness = np.log(K_grid / F)
+
+iv_obs = 0.2 + 0.1 * log_moneyness**2 + 0.05 * T_grid
+iv_obs += np.random.normal(0, 0.005, size=iv_obs.shape)
+iv_obs_smoothed = gaussian_filter(iv_obs, sigma=1.0)
+
+# === Prepare training data ===
+X_data = np.column_stack([log_moneyness.flatten(), T_grid.flatten()])
+y_data = iv_obs_smoothed.flatten()
+
+X_tensor = torch.tensor(X_data, dtype=torch.float32)
+y_tensor = torch.tensor(y_data, dtype=torch.float32).view(-1, 1)
+dataset = TensorDataset(X_tensor, y_tensor)
+loader = DataLoader(dataset, batch_size=128, shuffle=True)
+
+# === Define neural net ===
+class IVNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(2, 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1)
+        )
+    def forward(self, x):
+        return self.net(x)
+
+device = torch.device("cpu")
+model = IVNet().to(device)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+loss_fn = nn.MSELoss()
+
+# === Train loop ===
+for epoch in range(500):
+    for xb, yb in loader:
+        pred = model(xb)
+        loss = loss_fn(pred, yb)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+# === Predict on full grid ===
+with torch.no_grad():
+    X_full_tensor = torch.tensor(X_data, dtype=torch.float32)
+    y_pred = model(X_full_tensor).numpy().reshape(K_grid.shape)
+
+# === Plot LSMC vs NN vs Residual ===
+residuals = iv_obs_smoothed - y_pred
+
+fig = plt.figure(figsize=(18, 6))
+fig.suptitle("Neural Net Fit to LSMC IV Surface", fontsize=16)
+
+ax1 = fig.add_subplot(1, 3, 1, projection='3d')
+ax1.plot_surface(log_moneyness, T_grid, iv_obs_smoothed, cmap=cm.viridis)
+ax1.set_title("LSMC-Inferred IV")
+ax1.set_xlabel("log(K/F)")
+ax1.set_ylabel("T")
+ax1.set_zlabel("IV")
+
+ax2 = fig.add_subplot(1, 3, 2, projection='3d')
+ax2.plot_surface(log_moneyness, T_grid, y_pred, cmap=cm.plasma)
+ax2.set_title("NN Predicted IV")
+ax2.set_xlabel("log(K/F)")
+ax2.set_ylabel("T")
+ax2.set_zlabel("IV")
+
+ax3 = fig.add_subplot(1, 3, 3, projection='3d')
+ax3.plot_surface(log_moneyness, T_grid, residuals, cmap=cm.coolwarm)
+ax3.set_title("Residual: LSMC - NN")
+ax3.set_xlabel("log(K/F)")
+ax3.set_ylabel("T")
+ax3.set_zlabel("Residual")
+
+plt.tight_layout()
+plt.show()
