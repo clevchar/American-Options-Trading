@@ -9,6 +9,8 @@ This project includes:
 - A Longstaff-Schwartz Monte Carlo (LSMC) simulation to estimate early exercise policies for American put options.
 - Construction of a 3D implied volatility surface in log-moneyness and time to maturity space.
 - A Bayesian updating mechanism to blend market-observed IVs with a fitted surface, preserving structure while reflecting real-time noise.
+- A SABR parametric IV Surface
+- A machine learning approach to IV surface
 
 ## File Descriptions
 
@@ -36,6 +38,15 @@ Fits a polynomial surface to synthetic implied volatility data across log-moneyn
 
 Applies a Bayesian update to the fitted IV surface, blending with market-observed data while preserving shape.
 
+**Example Output:**
+
+![Bayes IV Surface](images/Bayes%20IV%20Surface.png)
+
+---
+
+### Residual comparison of Nueral Net and SABR against true IV Surface
+
+Although SABR is a extapolable physics equation using parameterization, it loses true structure. Observe the nueral net can reconstruct IV surface far more accurately, although developments must be made towards arbitrage free surface requirements for this to truly function.
 **Example Output:**
 
 ![Bayes IV Surface](images/Bayes%20IV%20Surface.png)
