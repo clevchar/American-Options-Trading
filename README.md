@@ -76,6 +76,8 @@ Simulating options trading is a decidedly complex topic. The first bifercation i
 
 By projecting orderbook data (real or simulated) onto a multi-dimensional metric, say log-moneyness, IV, and TTE it is possible to analyze the varying topologies of firms proprietary first principle logic. Observing the time-series development and discontinous (buy and sell inhabit different spaces in the metric by nature) geometries of the strategies may be insightful for inter-firm advesarial dynamics. Overlap is either adveserial trades of the same asset (one buys from another) or latency wars (two hoping to buy). 
 
+![Mathematical Formulas](images/Mathematical%20Options%20Prices.png)
+
 
 
 ## Dependencies
