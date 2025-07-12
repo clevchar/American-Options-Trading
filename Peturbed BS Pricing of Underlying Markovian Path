@@ -1,0 +1,73 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+# --- Black-Scholes ---
+def bs_price(S, K, T, r, sigma, kind='call'):
+    if T <= 0:
+        return max(0, S - K) if kind == 'call' else max(0, K - S)
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    if kind == 'call':
+        return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+    else:
+        return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+
+# --- Jump Heston-like simulation ---
+def simulate_jump_heston(T=1.0, steps=390, mu=0.0, v0=0.04, kappa=3.0, theta=0.04, xi=0.5, rho=-0.7,
+                         jump_lambda=0.3, jump_mu=-0.02, jump_sigma=0.1, S0=100.0):
+    dt = T / steps
+    S = [S0]
+    v = [v0]
+    for _ in range(steps):
+        z1, z2 = np.random.randn(), np.random.randn()
+        dw1 = z1 * np.sqrt(dt)
+        dw2 = (rho * z1 + np.sqrt(1 - rho**2) * z2) * np.sqrt(dt)
+
+        vt = max(v[-1] + kappa * (theta - v[-1]) * dt + xi * np.sqrt(v[-1]) * dw2, 1e-6)
+        vt_jump = np.random.poisson(jump_lambda * dt)
+        jump = np.exp(jump_mu + jump_sigma * np.random.randn()) if vt_jump else 1.0
+
+        St = S[-1] * np.exp((mu - 0.5 * v[-1]) * dt + np.sqrt(v[-1]) * dw1) * jump
+        v.append(vt)
+        S.append(St)
+    return np.array(S), np.array(v)
+
+# --- Simulate full options grid with perturbed IV ---
+def generate_option_simulation():
+    steps = 390
+    strikes = np.arange(96, 106)  # 96 to 105
+    option_data = []
+
+    underlying_path, vol_path = simulate_jump_heston(steps=steps)
+
+    for t in range(steps):
+        T = (steps - t) / steps
+        row = {'Time': t, 'Underlying': underlying_path[t]}
+
+        for K in strikes:
+            for kind in ['call', 'put']:
+                sigma = max(np.mean(vol_path[max(0, t-5):t+1]), 1e-6)**0.5
+                perturbation = np.random.normal(0, 0.01)
+                perturbed_sigma = max(sigma + perturbation, 1e-6)
+                price = bs_price(underlying_path[t], K, T, 0.0, perturbed_sigma, kind=kind)
+                row[f'{kind}_{K}'] = price
+
+        option_data.append(row)
+
+    df = pd.DataFrame(option_data)
+    df.to_csv('Simulated_Options_Chain1.csv', index=False)
+    return df
+
+# --- Run & Plot ---
+df = generate_option_simulation()
+
+df.set_index('Time')[['Underlying'] + [col for col in df.columns if col.startswith(('call_', 'put_'))]].plot(
+    figsize=(14, 6),
+    title='Simulated Option Prices (Perturbed IVs) + Underlying Path'
+)
+plt.grid()
+plt.ylabel('Price')
+plt.xlabel('Time Step')
+plt.show()
